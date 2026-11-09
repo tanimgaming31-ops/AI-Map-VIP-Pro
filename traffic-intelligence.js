@@ -78,10 +78,12 @@ window.installVipTraffic=function({state,$,toast}){
  };
  const keyInput=$('tomtomKey'),status=$('trafficDataStatus');
  const trafficToggle=$('vipTrafficToggle'),poiToggle=$('vipRoadSafetyToggle');
+ const rasterToggle=$('vipFlowRasterToggle'),routingToggle=$('vipRouteTrafficToggle');
  const refresh=$('vipRefreshTraffic');
  const panels=$('vipRoadDataPanel'),incidentsList=$('vipIncidentList');
  let key=storage.get('vip_tomtom_api_key'),keyEnabled=false;
  let trafficOn=storage.get('vip_traffic_on')!=='0',poiOn=storage.get('vip_poi_on')!=='0';
+ let rasterOn=storage.get('vip_tomtom_tiles_on')==='1',lastRaster=0;
  let lastTraffic=0,lastFlow=0,lastPOI=0,trafficEvents=[],staticPOI=[],flow=null;
  let incidentPins=[],safetyPins=[],flowDrawn=false,inFlight=false,poiInflight=false;
  let timer=null,viewTimer=null;
@@ -122,6 +124,24 @@ window.installVipTraffic=function({state,$,toast}){
      const p=marker(item,item.type,detail,'vip-osm-poi');
      if(p)safetyPins.push(p);
    });
+ }
+ function paintTrafficRaster(){
+   const map=state.map;
+   if(!map?.getStyle()?.sources||!map.isStyleLoaded())return;
+   try{
+     if(map.getLayer('vip-traffic-raster'))map.removeLayer('vip-traffic-raster');
+     if(map.getSource('vip-traffic-raster'))map.removeSource('vip-traffic-raster');
+     if(!rasterOn||!trafficOn||!hasProvider())return;
+     // Transparent flow tiles from TomTom. Opt-in because each displayed tile
+     // counts against the user's quota and embeds their key in tile requests.
+     const url='https://api.tomtom.com/traffic/map/4/tile/flow/relative0-dark/{z}/{x}/{y}.png?key='+
+       encodeURIComponent(key)+'&cacheId='+Math.floor(Date.now()/300000);
+     map.addSource('vip-traffic-raster',{type:'raster',tiles:[url],tileSize:256,minzoom:10,maxzoom:17});
+     const labels=(map.getStyle()?.layers||[]).find(layer=>layer.type==='symbol')?.id;
+     map.addLayer({id:'vip-traffic-raster',type:'raster',source:'vip-traffic-raster',
+       paint:{'raster-opacity':.77,'raster-fade-duration':0}},labels);
+     lastRaster=Date.now();
+   }catch(e){console.info('Traffic raster overlay unavailable',e.message);}
  }
  function paintFlow(){
    if(!state.map?.getStyle()?.sources)return;
@@ -171,6 +191,8 @@ window.installVipTraffic=function({state,$,toast}){
    if(keyInput)keyInput.value=key;
    if(trafficToggle)trafficToggle.checked=trafficOn;
    if(poiToggle)poiToggle.checked=poiOn;
+   if(rasterToggle)rasterToggle.checked=rasterOn;
+   if(routingToggle)routingToggle.checked=storage.get('vip_tomtom_route_on')==='1';
    updateStatus(hasProvider()?'Traffic data source ready. Press Refresh to test.':
      'Live traffic unavailable until a TomTom key is added.',hasProvider());
  }
@@ -252,6 +274,7 @@ window.installVipTraffic=function({state,$,toast}){
    key=value;storage.set('vip_tomtom_api_key',value);
    lastTraffic=0;lastFlow=0;
    settingsStatus();
+   paintTrafficRaster();
    if(key)loadTraffic(true);else{
      trafficEvents=[];flow=null;clearPins(incidentPins);paintFlow();updatePanel();
    }
@@ -259,7 +282,16 @@ window.installVipTraffic=function({state,$,toast}){
  $('vipSaveTrafficKey')?.addEventListener('click',saveKey);
  trafficToggle?.addEventListener('change',()=>{
    trafficOn=trafficToggle.checked;storage.set('vip_traffic_on',trafficOn?'1':'0');
-   paintIncidents();paintFlow();if(trafficOn)loadTraffic(true);updatePanel();
+   paintIncidents();paintFlow();paintTrafficRaster();if(trafficOn)loadTraffic(true);updatePanel();
+ });
+ rasterToggle?.addEventListener('change',()=>{
+   rasterOn=rasterToggle.checked;storage.set('vip_tomtom_tiles_on',rasterOn?'1':'0');
+   paintTrafficRaster();updatePanel();
+ });
+ routingToggle?.addEventListener('change',()=>{
+   storage.set('vip_tomtom_route_on',routingToggle.checked?'1':'0');
+   updateStatus(routingToggle.checked?'Traffic-aware routes enabled when Routing API access is available.':
+     'Standard OSRM routes selected.',!!key);
  });
  poiToggle?.addEventListener('change',()=>{
    poiOn=poiToggle.checked;storage.set('vip_poi_on',poiOn?'1':'0');
@@ -269,7 +301,7 @@ window.installVipTraffic=function({state,$,toast}){
  $('vipRoadDataBtn')?.addEventListener('click',()=>{
    if(panels){panels.hidden=!panels.hidden;if(!panels.hidden){loadTraffic();loadOsm();updatePanel();}}
  });
- const mapReady=()=>{paintIncidents();paintPOI();paintFlow();};
+ const mapReady=()=>{paintIncidents();paintPOI();paintFlow();paintTrafficRaster();};
  if(state.map){
    state.map.on('style.load',mapReady);
    state.map.on('moveend',()=>{
@@ -279,7 +311,9 @@ window.installVipTraffic=function({state,$,toast}){
  }
  // Only poll while the map is visible and in the foreground.
  timer=setInterval(()=>{
-   if(!document.hidden){loadTraffic();loadOsm();}
+   if(!document.hidden){loadTraffic();loadOsm();
+     if(rasterOn&&Date.now()-lastRaster>5*60*1000)paintTrafficRaster();
+   }
  },CYCLE);
  document.addEventListener('visibilitychange',()=>{
    if(!document.hidden){loadTraffic();loadOsm();}
