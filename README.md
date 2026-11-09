@@ -122,3 +122,12 @@ The map now uses **OpenFreeMap dark vector tiles** rendered with **MapLibre GL J
 - **Privacy & cost:** The optional key is saved in browser/app local storage, readable by scripts on the same origin; use a trusted personal APK/browser profile, not a shared/public kiosk. Never commit API keys to GitHub. Map center or GPS coordinate is sent to the selected data services. Traffic data provider billing, quotas and coverage depend on your key/account. The free tier is limited and may change.
 - **Not available:** Live red/amber/green light phase or countdown, comprehensive speed camera database or real-time activation, Waze community police reports, traffic-aware multi-route optimization, continuously verified traffic ETA, road safety certification. No unverified item is presented as a live verified alert.
 - Real GPS and traffic provider reliability still require testing on an actual Android phone and in the target region.
+
+## Version 1.4: optional licensed congestion overlay + traffic-aware driving route
+
+- The user must create and enter their own **TomTom API key**. Nothing is enabled on initial install beyond keyless OSM-mapped road items.
+- The Settings option **Show congestion colors across map** enables TomTom's `relative0-dark` transparent raster flow tiles on top of OpenFreeMap. **Off by default:** each tile request counts against the key's traffic tile quota. Accuracy, cost and region coverage depend on TomTom.
+- **Prefer traffic-aware driving routes** chooses TomTom Routing API (traffic=true), when that account supports it. Route geometry, turn text and ETA come from the **same provider**. If the service fails or guidance is incomplete, the application falls back to the existing OSRM directions, explicitly without live traffic. **Off by default** to control quota.
+- TomTom may return lane sections; show them only when the API provides an applicable lane section and indicates a recommended lane. No guessed road lanes or signal timing.
+- Red/green/amber live signal phase, authenticated community police locations, active camera status, comprehensive speed limits and certified driving safety are still **not supported**. OSM infrastructure nodes remain static, potentially out of date.
+- Traffic routes are not automatically re-fetched each second. GPS ETA during navigation is an estimate since the latest route calculation. Traffic coverage, routing result and paid quota cannot be verified without your own key on an actual Android phone.

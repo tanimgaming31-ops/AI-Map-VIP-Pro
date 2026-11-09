@@ -10,6 +10,7 @@ on:
       - 'live-navigation.js'
       - 'live-navigation.css'
       - 'traffic-intelligence.js'
+      - 'tomtom-routing.js'
       - 'traffic-intelligence.css'
       - 'manifest.webmanifest'
       - 'sw.js'

@@ -35,3 +35,9 @@ The VIP navigation view is inspired by contemporary navigation interfaces, but *
 - OSRM intersection lane metadata: https://project-osrm.org/docs/v26.5.0/http
 
 These data sources are **not** Google/Waze licensed incident or police feeds, and are not guaranteed complete. Never treat static OSM locations as live traffic-signal status.
+
+### Additional TomTom endpoints
+- TomTom transparent raster traffic overlays: https://docs.tomtom.com/traffic-api/documentation/tomtom-maps/v1/traffic-flow/raster-flow-tiles
+- TomTom Calculate Route API (traffic-aware route geometry and maneuvers): https://docs.tomtom.com/routing-api/documentation/tomtom-maps/v1/calculate-route
+- TomTom guidance/lane sections: https://docs.tomtom.com/routing-api/documentation/tomtom-maps/v1/guidance-instructions
+- API key owners are subject to TomTom billing, access restrictions and free tier limits.
