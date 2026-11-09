@@ -20,3 +20,10 @@ This project package does **not** claim ownership of third-party libraries, map 
 - OpenStreetMap contributors: https://www.openstreetmap.org/copyright
 
 The VIP navigation view is inspired by contemporary navigation interfaces, but **does not contain Waze/Google proprietary maps, traffic, police reports, or user reports**. Real-time traffic alerts are not implemented. Dynamic map providers and routing need internet. Provider attribution is visible in the map UI.
+
+## Routing and turn-by-turn service
+- Public OpenStreetMap routing service: https://routing.openstreetmap.de/
+- OSRM project: https://project-osrm.org/ ; source https://github.com/Project-OSRM/osrm-backend
+- Directions based on publicly available routing data, not live traffic.
+  Providers have availability, rate limits and terms; high-volume use
+  requires an appropriately hosted routing provider.
