@@ -1,0 +1,22 @@
+/* Deterministic unit tests for independent navigation math and shared coordinate parsing. */
+'use strict';
+const assert=require('node:assert/strict');
+global.window={};
+require('../live-navigation.js');
+const {haversine,projectOnLine,nextInstruction,readSharedPlace,formatDist,formatDuration}=window.VipNavigationMath;
+const meters=haversine({lat:25.2,lon:55.2},{lat:25.21,lon:55.2});
+assert.ok(meters>1000&&meters<1200,'Distance in meters');
+const line={type:'LineString',coordinates:[[55.2,25.2],[55.21,25.2],[55.22,25.2]]};
+const snap=projectOnLine(line,{lat:25.2001,lon:55.215});
+assert.ok(snap.lateral<20&&snap.along>900&&snap.total>1800,'Route progress and lateral error');
+const step={maneuver:{type:'turn',modifier:'right'},name:'Sheikh Zayed Road'};
+assert.match(nextInstruction(step,'en'),/Turn right/);
+assert.match(nextInstruction(step,'bn'),/ডানে/);
+assert.equal(readSharedPlace('geo:25.2048,55.2708').point.lat,25.2048);
+assert.equal(readSharedPlace('https://maps.google.com/maps?q=25.2048,55.2708').point.lon,55.2708);
+assert.equal(readSharedPlace('https://www.google.com/maps/@25.2048,55.2708,15z').point.lat,25.2048);
+assert.equal(readSharedPlace('https://maps.app.goo.gl/abcd').kind,'shortlink');
+assert.equal(readSharedPlace('Dubai Mall').kind,'query');
+assert.equal(formatDist(1500),'1.5 km');
+assert.equal(formatDuration(1980),'33 min');
+console.log('PASS: navigation geometry, instructions and shared locations');
