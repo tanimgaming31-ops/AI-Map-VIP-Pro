@@ -9,6 +9,8 @@ on:
       - 'navigation-map.js'
       - 'live-navigation.js'
       - 'live-navigation.css'
+      - 'traffic-intelligence.js'
+      - 'traffic-intelligence.css'
       - 'manifest.webmanifest'
       - 'sw.js'
       - 'icons/**'

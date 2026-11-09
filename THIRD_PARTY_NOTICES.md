@@ -27,3 +27,11 @@ The VIP navigation view is inspired by contemporary navigation interfaces, but *
 - Directions based on publicly available routing data, not live traffic.
   Providers have availability, rate limits and terms; high-volume use
   requires an appropriately hosted routing provider.
+
+## Optional traffic and mapped road objects
+
+- TomTom Traffic APIs (provider terms, authenticated key, rate limits and pricing): https://docs.tomtom.com/traffic-api/ and https://docs.tomtom.com/pricing
+- OpenStreetMap mapped traffic signals and fixed speed cameras: https://www.openstreetmap.org/copyright and https://wiki.openstreetmap.org/wiki/Tag:highway%3Dspeed_camera
+- OSRM intersection lane metadata: https://project-osrm.org/docs/v26.5.0/http
+
+These data sources are **not** Google/Waze licensed incident or police feeds, and are not guaranteed complete. Never treat static OSM locations as live traffic-signal status.

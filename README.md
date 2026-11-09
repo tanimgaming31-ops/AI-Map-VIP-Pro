@@ -37,7 +37,7 @@ Premium mobile-friendly map and navigation web application.
 - The optional Anthropic feature calls the API directly from the browser. **Any key entered into browser-side JavaScript can be exposed**, especially on a public/shared website. For a production/public service, move AI API requests to a secure authenticated backend. A password input does not make a browser API key private.
 - Saved places and preferences live in that browser/device's storage, **not** in GitHub. Updating `index.html` normally leaves browser storage intact, but clearing browsing data or changing the site origin may remove those settings.
 - Map tiles, search, routing, and AI rely on third-party services, their rate limits, connectivity and terms. GPS and microphone require browser permission and typically HTTPS.
-- This is **not** an Android APK. GitHub Pages hosts a web application.
+- GitHub Pages hosts the web application, while the Android APK is produced by GitHub Actions.
 
 ## Structure
 
@@ -105,10 +105,20 @@ The map now uses **OpenFreeMap dark vector tiles** rendered with **MapLibre GL J
 - Recalculates a route when high-accuracy GPS repeatedly indicates off-route.
 - Shares from text and geographic coordinates are supported on Android
   through **Share > AI MAP VIP PRO** (shortened Google links may not resolve).
-- There is **no** verified real-time traffic, signal timings, police cameras,
-  speed limits, community incidents, speed trap reports, or lane-level guidance.
+- There is **no** verified real-time signal phase, active speed-camera status,
+  police locations, crowdsourced incidents, or guaranteed lane-level guidance.
   The route ETA is calculated from routing estimates rather than traffic.
 - This is a prototype for evaluation, **not** road-safety-certified driving
   navigation. Keep it foregrounded and follow road signs and laws.
 - The APK must be reinstalled when rebuilt; saving places is local to the
   app/browser. Do not type your API key into GitHub source code.
+
+
+## Optional traffic and road-safety map, version 1.3
+
+- **OpenStreetMap:** The TRAFFIC panel displays *mapped* traffic lights and fixed cameras, if the Overpass public service has entries nearby. Those are static features only, not live traffic-signal colors, active camera operation or complete speed-limit coverage.
+- **TomTom Traffic:** In Settings, enter your OWN TomTom Maps Traffic API key and press **SAVE TRAFFIC KEY**. The Traffic panel can then request real incidents (accidents, roadworks, jams, closures) and a flow segment near the map position. Incidents and flow data only appear when authenticated requests complete successfully. Requests are throttled. No key is bundled in public source code.
+- **Lane arrows:** During Go Now, the turn banner reads OSRM intersection lane hints and highlights valid lanes when provided. If no lane metadata exists, no lanes are displayed. This is not HD lane-level navigation.
+- **Privacy & cost:** The optional key is saved in browser/app local storage, readable by scripts on the same origin; use a trusted personal APK/browser profile, not a shared/public kiosk. Never commit API keys to GitHub. Map center or GPS coordinate is sent to the selected data services. Traffic data provider billing, quotas and coverage depend on your key/account. The free tier is limited and may change.
+- **Not available:** Live red/amber/green light phase or countdown, comprehensive speed camera database or real-time activation, Waze community police reports, traffic-aware multi-route optimization, continuously verified traffic ETA, road safety certification. No unverified item is presented as a live verified alert.
+- Real GPS and traffic provider reliability still require testing on an actual Android phone and in the target region.

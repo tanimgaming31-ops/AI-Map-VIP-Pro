@@ -48,4 +48,5 @@ with TemporaryDirectory() as tmp:
         subprocess.run(['node', '--check', str(filename)], check=True)
 subprocess.run(['node', '--check', 'navigation-map.js'], check=True)
 subprocess.run(['node', '--check', 'live-navigation.js'], check=True)
+subprocess.run(['node', '--check', 'traffic-intelligence.js'], check=True)
 print(f'PASS: index.html has title and {len(p.inline)} inline script(s) with valid JavaScript syntax')
