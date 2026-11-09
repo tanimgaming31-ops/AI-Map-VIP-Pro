@@ -93,3 +93,22 @@ verified on an Android phone. Check workflow logs and test on your device.
 ## VIP navigation map update
 
 The map now uses **OpenFreeMap dark vector tiles** rendered with **MapLibre GL JS**. No CARTO key or Google Maps key is required. The controls support zoom, tilt between 2D/3D, rotate the map with gestures, reset bearing to north, tap to select, search, saved places, GPS (with permission), and route overlays. 3D buildings appear where map data supplies building geometry. Live map features need internet and third-party services. This is **not a Waze clone**: no crowd-sourced traffic, closures, speed traps, police markers or real-time incident reporting.
+
+## Real GPS turn-by-turn navigation (new)
+- Tap a location, choose **Directions**, select an OSRM-provided route, then **Go now**.
+- Displays road geometry on a dark vector map, 2D/3D view, GPS-follow camera,
+  next turn and distance, route duration, remaining distance, arrival estimate.
+- Spoken navigation uses Android text-to-speech when supported by the native
+  bridge (otherwise web speech synthesis where available).
+- Requests location permission for foreground geolocation. Turns, reroutes
+  and ETA depend on GPS accuracy, network and the routing service.
+- Recalculates a route when high-accuracy GPS repeatedly indicates off-route.
+- Shares from text and geographic coordinates are supported on Android
+  through **Share > AI MAP VIP PRO** (shortened Google links may not resolve).
+- There is **no** verified real-time traffic, signal timings, police cameras,
+  speed limits, community incidents, speed trap reports, or lane-level guidance.
+  The route ETA is calculated from routing estimates rather than traffic.
+- This is a prototype for evaluation, **not** road-safety-certified driving
+  navigation. Keep it foregrounded and follow road signs and laws.
+- The APK must be reinstalled when rebuilt; saving places is local to the
+  app/browser. Do not type your API key into GitHub source code.
