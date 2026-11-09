@@ -6,6 +6,13 @@ import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.media.AudioAttributes;
+import android.speech.tts.TextToSpeech;
+import androidx.webkit.WebViewCompat;
+import androidx.webkit.WebViewFeature;
+import org.json.JSONObject;
+import java.util.Collections;
+import java.util.Locale;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
@@ -29,12 +36,24 @@ public class MainActivity extends Activity {
     private GeolocationPermissions.Callback locationCallback;
     private String requestedLocationOrigin;
     private PermissionRequest microphoneRequest;
+    private TextToSpeech navigationSpeech;
+    private String pendingSharedLocation;
+    private boolean appPageLoaded = false;
 
     @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         getWindow().setNavigationBarColor(Color.rgb(8, 13, 24));
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR & 0);
+        readShareIntent(getIntent());
+        navigationSpeech = new TextToSpeech(this, status -> {
+            if (status == TextToSpeech.SUCCESS && navigationSpeech != null) {
+                navigationSpeech.setLanguage(Locale.US);
+                navigationSpeech.setAudioAttributes(new AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build());
+            }
+        });
         webView = new WebView(this);
         webView.setBackgroundColor(Color.rgb(8, 13, 24));
         setContentView(webView);
@@ -49,12 +68,52 @@ public class MainActivity extends Activity {
         options.setMediaPlaybackRequiresUserGesture(true);
         options.setSupportZoom(false);
         options.setBuiltInZoomControls(false);
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) {
+            WebViewCompat.addWebMessageListener(webView, "vipAndroid",
+                Collections.singleton(ASSET_ORIGIN),
+                (view, message, origin, mainFrame, replyProxy) -> {
+                    if (!mainFrame || !ASSET_ORIGIN.equals(origin.toString())) return;
+                    try {
+                        JSONObject data = new JSONObject(message.getData());
+                        String action = data.optString("type", "");
+                        if ("screen".equals(action)) {
+                            boolean enabled = data.optBoolean("keepOn", false);
+                            runOnUiThread(() -> {
+                                if (enabled) getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                                else getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                            });
+                        } else if ("stopSpeech".equals(action)) {
+                            runOnUiThread(() -> { if (navigationSpeech != null) navigationSpeech.stop(); });
+                        } else if ("speak".equals(action)) {
+                            String content = data.optString("text", "");
+                            String lang = data.optString("language", "en-US");
+                            if (content.length() > 400) content = content.substring(0, 400);
+                            final String output = content;
+                            runOnUiThread(() -> {
+                                if (navigationSpeech == null || output.isEmpty()) return;
+                                Locale locale = Locale.forLanguageTag(lang);
+                                int available = navigationSpeech.isLanguageAvailable(locale);
+                                if (available >= TextToSpeech.LANG_AVAILABLE) navigationSpeech.setLanguage(locale);
+                                else navigationSpeech.setLanguage(Locale.US);
+                                navigationSpeech.speak(output, TextToSpeech.QUEUE_FLUSH, null,
+                                    "vip-guidance-" + System.nanoTime());
+                            });
+                        }
+                    } catch (Exception ignored) {}
+                });
+        }
         final WebViewAssetLoader loader = new WebViewAssetLoader.Builder()
             .addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(this))
             .build();
         webView.setWebViewClient(new WebViewClient() {
             @Override public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
                 return loader.shouldInterceptRequest(request.getUrl());
+            }
+            @Override public void onPageFinished(WebView view, String url) {
+                if (url.startsWith(ASSET_ORIGIN)) {
+                    appPageLoaded = true;
+                    deliverSharedLocation();
+                }
             }
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 Uri u = request.getUrl();
@@ -95,6 +154,34 @@ public class MainActivity extends Activity {
         webView.loadUrl(START_URL);
     }
 
+    private void readShareIntent(Intent intent) {
+        if (intent == null) return;
+        String value = null;
+        if (Intent.ACTION_SEND.equals(intent.getAction()) && "text/plain".equals(intent.getType())) {
+            value = intent.getStringExtra(Intent.EXTRA_TEXT);
+        } else if (Intent.ACTION_VIEW.equals(intent.getAction()) && intent.getData() != null) {
+            Uri uri = intent.getData();
+            if ("geo".equals(uri.getScheme())) value = uri.toString();
+        }
+        if (value != null && value.length() > 0) pendingSharedLocation = value.substring(0, Math.min(3000, value.length()));
+    }
+    private void deliverSharedLocation() {
+        if (webView == null || !appPageLoaded || pendingSharedLocation == null) return;
+        String value = pendingSharedLocation;
+        pendingSharedLocation = null;
+        webView.evaluateJavascript("window.vipImportSharedLocation && window.vipImportSharedLocation("+
+            JSONObject.quote(value)+");", null);
+    }
+    @Override protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        readShareIntent(intent);
+        deliverSharedLocation();
+    }
+    @Override protected void onPause() {
+        if (navigationSpeech != null) navigationSpeech.stop();
+        super.onPause();
+    }
     private boolean hasLocationPermission() {
         return checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
             checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
@@ -118,6 +205,8 @@ public class MainActivity extends Activity {
         else super.onBackPressed();
     }
     @Override protected void onDestroy() {
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        if (navigationSpeech != null) { navigationSpeech.stop(); navigationSpeech.shutdown(); navigationSpeech = null; }
         if (webView != null) { webView.destroy(); webView = null; }
         super.onDestroy();
     }
