@@ -4,7 +4,7 @@
   'use strict';
   window.installVipNavigation = function ({ state, $, t, toast, renderExplore, setTab, renderRouteResult, fmtDist, fmtTime, geocode, setMode }) {
     const GL = window.maplibregl;
-    const styleURL = () => 'https://tiles.openfreemap.org/styles/' + (state.theme === 'day' ? 'positron' : 'dark');
+    const styleURL = () => 'https://tiles.openfreemap.org/styles/' + (state.theme === 'day' ? 'positron' : state.theme === 'rose' ? 'dark' : 'fiord');
     const validCoord = p => p && Number.isFinite(+p.lat) && Number.isFinite(+p.lon);
     state.mapPins = [];
     state.is3d = true;
@@ -27,7 +27,7 @@
     }
     function paintRoute() {
       const map = state.map;
-      if (!map || !map.isStyleLoaded() || !state.lastRoute?.route?.geometry) return;
+      if (!map || !map.getStyle()?.sources || !state.lastRoute?.route?.geometry) return;
       const geojson = { type:'Feature', properties:{}, geometry:state.lastRoute.route.geometry };
       try {
         if (map.getSource('vip-route')) {
@@ -44,7 +44,7 @@
     }
     function addBuildings() {
       const map=state.map;
-      if(!map || !map.isStyleLoaded() || map.getLayer('vip-3d-buildings')) return;
+      if(!map || !map.getStyle()?.sources || map.getLayer('vip-3d-buildings')) return;
       const style=map.getStyle()||{};
       const fromStyle=(style.layers||[]).find(layer=>layer['source-layer']==='building');
       const source=fromStyle?.source || Object.keys(style.sources||{}).find(key=>style.sources[key]?.type==='vector');
