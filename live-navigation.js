@@ -310,6 +310,21 @@ window.installVipLiveNavigation=function({state,$,t,toast,setTab,setMode,locate,
     bannerArrow.textContent=m.type==='arrive'?'⚑':arrows[modifier]||'↑';
     bannerDistance.textContent=formatDist(distance);
     bannerStreet.textContent=nextInstruction(step,lang());
+    const lanePanel=$('vip-lanes');
+    if(lanePanel){
+      const mapped=window.VipTrafficMath?.lanesForManeuver(step)||[];
+      lanePanel.hidden=mapped.length===0;
+      const signs={left:'↰',right:'↱',straight:'↑',uturn:'⤺', 'slight left':'↖',
+        'slight right':'↗','sharp left':'⬅','sharp right':'➡'};
+      lanePanel.innerHTML='';
+      mapped.forEach(lane=>{
+        const span=document.createElement('span');
+        span.className='vip-lane'+(lane.valid?' valid':'');
+        span.textContent=lane.indications.map(x=>signs[x]||'↑').join('/')||'│';
+        span.title=lane.valid?'Mapped permitted lane':'Mapped lane not suggested for turn';
+        lanePanel.appendChild(span);
+      });
+    }
   }
   function updateNavigation(position){
     if(!active||!routes.length||!destination||!valid(position))return;
