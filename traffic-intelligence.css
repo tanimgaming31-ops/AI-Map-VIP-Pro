@@ -1,0 +1,38 @@
+/* Traffic intelligence layer: discrete, non-blocking, clearly sourced. */
+#vipRoadDataBtn{position:fixed;top:calc(214px + env(safe-area-inset-top));right:12px;
+ z-index:1050;border:1px solid #e9bf7c66;border-radius:15px;background:#101a2eea;color:#ffd696;
+ font:800 11px 'Outfit',sans-serif;letter-spacing:.05em;padding:10px 12px;box-shadow:0 7px 24px #0008}
+#vipRoadDataPanel{position:fixed;top:calc(258px + env(safe-area-inset-top));right:12px;
+ z-index:1100;background:#0c1425f5;border:1px solid #f7d18e55;border-radius:18px;
+ padding:13px;color:#f5f4f8;width:min(345px,calc(100vw - 24px));max-height:44dvh;overflow:auto;
+ box-shadow:0 20px 50px #0009}
+#vipRoadDataPanel[hidden],#vip-lanes[hidden]{display:none!important}
+#vipRoadDataPanel header{display:flex;justify-content:space-between;align-items:center;gap:10px}
+#vipRoadDataPanel header strong{font:800 14px 'Outfit';color:#ffe2aa}
+#vipRoadDataSummary{display:block;margin:8px 0 10px;color:#b5c0d0;font:600 10px/1.4 'DM Sans'}
+#vipIncidentList{display:grid;gap:7px}
+.vip-event-item{border:1px solid #ffffff23;background:#ffffff09;border-radius:12px;
+ padding:10px;font:600 11px 'DM Sans'}
+.vip-event-item b{display:block;font-size:12px}
+.vip-event-item small{display:block;color:#b4bcca;margin-top:4px}
+.vip-data-marker{width:28px;height:28px;display:grid;place-items:center;border-radius:50%;
+ background:#1b273cf2;border:2px solid #eac1a0;box-shadow:0 3px 12px #0008;
+ font-size:16px;cursor:pointer}
+.vip-data-marker.vip-live-event{background:#6e3144;border-color:#ff819b}
+.vip-data-marker.vip-osm-poi{background:#0e3342;border-color:#4ad8ef}
+#vip-lanes{display:flex;align-items:center;justify-content:space-evenly;gap:2px;margin:6px 0 0;
+ padding:4px 7px;background:#14263a;border-radius:10px}
+#vip-lanes .vip-lane{color:#7c8fa1;font-size:20px;font-weight:800;opacity:.57;min-width:25px;text-align:center}
+#vip-lanes .vip-lane.valid{color:#5fe3ee;opacity:1;text-shadow:0 0 10px #4ce9ff70}
+body.vip-nav-active #vipRoadDataBtn{top:calc(236px + env(safe-area-inset-top));right:9px;z-index:1100}
+body.vip-nav-active #vipRoadDataPanel{top:calc(280px + env(safe-area-inset-top))}
+body.vip-nav-preview #vipRoadDataBtn{top:calc(114px + env(safe-area-inset-top));right:12px}
+body.vip-nav-preview #vipRoadDataPanel{top:calc(155px + env(safe-area-inset-top))}
+body.vip-nav-preview #vipRoadDataBtn,body.vip-nav-active #vipRoadDataBtn{font-size:10px}
+#vip-traffic-settings{margin-top:14px;padding:12px;border:1px solid #f5cf8a36;
+ border-radius:14px;background:rgba(10,15,29,.50)}
+#vip-traffic-settings a{color:var(--gold);font-size:11px}
+#vip-traffic-settings .settingrow{margin:8px 0}
+#trafficDataStatus{color:var(--muted);font-size:11px;line-height:1.45;margin:9px 0}
+#trafficDataStatus[data-ready="yes"]{color:var(--ok)}
+@media(max-width:420px){#vipRoadDataBtn{top:calc(202px + env(safe-area-inset-top));font-size:10px;padding:8px}}
