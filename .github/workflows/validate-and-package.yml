@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: vip-source-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate-and-package:
     runs-on: ubuntu-latest
