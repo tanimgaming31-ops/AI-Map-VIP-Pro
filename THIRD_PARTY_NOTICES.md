@@ -11,3 +11,12 @@ This web application may use the following external resources and services:
 - **Anthropic** API: optional user-provided key; platform terms and billing apply.
 
 This project package does **not** claim ownership of third-party libraries, map data, logos, services, or fonts. Check the current terms of each provider before public/commercial deployment.
+
+## Key-free dark map and 3D renderer (2026-11-09)
+
+- MapLibre GL JS (BSD-3-Clause): https://maplibre.org/
+- OpenFreeMap: https://openfreemap.org/ (public vector tiles and styles, no API key)
+- OpenMapTiles: https://openmaptiles.org/
+- OpenStreetMap contributors: https://www.openstreetmap.org/copyright
+
+The VIP navigation view is inspired by contemporary navigation interfaces, but **does not contain Waze/Google proprietary maps, traffic, police reports, or user reports**. Real-time traffic alerts are not implemented. Dynamic map providers and routing need internet. Provider attribution is visible in the map UI.

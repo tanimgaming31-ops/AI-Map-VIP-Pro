@@ -1,6 +1,6 @@
 /* Cache the interface only. Live maps, geocoding, AI and routes remain network dependent. */
-const CACHE = 'ai-map-vip-shell-v1';
-const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/vip-compass.svg', './icons/icon-192.png', './icons/icon-512.png'];
+const CACHE = 'ai-map-vip-shell-v2';
+const SHELL = ['./', './index.html', './navigation-map.js', './manifest.webmanifest', './icons/vip-compass.svg', './icons/icon-192.png', './icons/icon-512.png'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting()));
 });

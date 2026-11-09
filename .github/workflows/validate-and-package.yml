@@ -21,7 +21,7 @@ jobs:
         run: python3 scripts/check_html.py
       - name: Create complete source ZIP
         run: |
-          zip -r AI-Map-VIP-Pro-Source.zip index.html README.md THIRD_PARTY_NOTICES.md .nojekyll             manifest.webmanifest sw.js icons/ android/ scripts/ .github/workflows/ .gitignore
+          zip -r AI-Map-VIP-Pro-Source.zip index.html navigation-map.js README.md THIRD_PARTY_NOTICES.md .nojekyll             manifest.webmanifest sw.js icons/ android/ scripts/ .github/workflows/ .gitignore
       - uses: actions/upload-artifact@v4
         with:
           name: AI-Map-VIP-Pro-Source

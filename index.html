@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
 <style>
 :root{
  --bg:#080d18;--panel:rgba(10,15,29,.91);--panel2:rgba(21,27,45,.92);--card:rgba(255,255,255,.055);
@@ -29,8 +29,8 @@ body[data-theme="day"]{--bg:#f4f1ef;--panel:rgba(255,255,255,.95);--panel2:rgba(
 *{box-sizing:border-box}html,body{height:100%;margin:0}body{background:var(--bg);color:var(--ink);font:14px/1.45 'DM Sans',system-ui,-apple-system,'Segoe UI',sans-serif;overflow:hidden}
 button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
 svg{width:20px;height:20px;stroke:currentColor;stroke-width:1.85;stroke-linecap:round;stroke-linejoin:round;fill:none;flex-shrink:0}
-#map{position:fixed;inset:0;background:#1b2639;z-index:0}.leaflet-container{font-family:inherit;background:#151a29}.leaflet-popup-content-wrapper{border-radius:16px;box-shadow:var(--shadow)}.leaflet-popup-content{font:600 14px 'DM Sans',sans-serif}
-#mapShade{pointer-events:none;position:fixed;inset:0;z-index:400;background:linear-gradient(90deg,rgba(7,11,23,.32),transparent 57%),linear-gradient(180deg,rgba(5,10,23,.16),transparent 25%)}body[data-theme="day"] #mapShade{background:linear-gradient(90deg,rgba(40,34,45,.08),transparent)}
+#map{position:fixed;inset:0;background:#1b2639;z-index:0}.maplibregl-map{font-family:inherit;background:#18293a}.maplibregl-popup-content{color:#171724;font:600 13px 'DM Sans',sans-serif;border-radius:12px;padding:9px 13px;box-shadow:var(--shadow)}.maplibregl-popup-close-button{font-size:18px}.maplibregl-control-container{display:none}
+.vip-user-location{width:22px;height:22px;border-radius:50%;background:#2aa5ff;border:4px solid #fff;box-shadow:0 0 0 9px rgba(50,157,255,.18),0 3px 12px #0b0f1b;pointer-events:auto}.vip-map-error{position:absolute;left:9%;top:35%;max-width:80%;padding:20px;background:#141b2c;border:1px solid #ffcf83;border-radius:18px;color:#ffe3b2;font-weight:700}.tool.on{border-color:rgba(245,203,133,.8)!important;color:var(--gold)!important;background:rgba(17,21,38,.93)!important}.tool.label-tool{font:800 12px 'Outfit',sans-serif;letter-spacing:.08em}#mapShade{pointer-events:none;position:fixed;inset:0;z-index:400;background:linear-gradient(90deg,rgba(7,11,23,.32),transparent 57%),linear-gradient(180deg,rgba(5,10,23,.16),transparent 25%)}body[data-theme="day"] #mapShade{background:linear-gradient(90deg,rgba(40,34,45,.08),transparent)}
 .glass{background:var(--panel);border:1px solid var(--stroke);box-shadow:var(--shadow);-webkit-backdrop-filter:blur(28px) saturate(150%);backdrop-filter:blur(28px) saturate(150%)}
 #header{position:fixed;top:calc(12px + env(safe-area-inset-top));left:16px;z-index:950;width:min(450px,calc(100% - 32px));display:grid;gap:11px;pointer-events:none}#header>*{pointer-events:auto}
 .brandrow{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 5px}
@@ -112,8 +112,10 @@ svg{width:20px;height:20px;stroke:currentColor;stroke-width:1.85;stroke-linecap:
  <button class="tool" id="layersBtn" aria-label="Switch map layers" title="Switch map style"><svg><use href="#i-layers"/></svg></button>
  <button class="tool" id="zoomInBtn" aria-label="Zoom in"><svg><use href="#i-plus"/></svg></button>
  <button class="tool" id="zoomOutBtn" aria-label="Zoom out"><svg><use href="#i-minus"/></svg></button>
+ <button class="tool label-tool on" id="tiltBtn" aria-pressed="true" aria-label="Toggle 3D perspective" title="2D / 3D map">3D</button>
+ <button class="tool label-tool" id="northBtn" aria-label="Reset compass to north" title="North up">N ↑</button>
 </div>
-<div id="mapcredit"><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap</a> · <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a></div>
+<div id="mapcredit"><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap</a> · <a href="https://openfreemap.org/" target="_blank" rel="noopener">OpenFreeMap</a> · <a href="https://openmaptiles.org/" target="_blank" rel="noopener">OpenMapTiles</a></div>
 <div id="sheet" class="glass">
  <button id="sheethead" aria-label="Expand or collapse navigation panel"><div><div class="handle"></div><div class="sheetmeta">✦ &nbsp;YOUR PERSONAL NAVIGATOR</div><div class="sheettitle" id="sheetTitle">Discover the extraordinary.</div></div><div class="sheetright"><span id="panelHint">EXPAND</span><svg><use href="#i-chevron"/></svg></div></button>
  <div id="sheetcontent">
@@ -166,7 +168,8 @@ svg{width:20px;height:20px;stroke:currentColor;stroke-width:1.85;stroke-linecap:
   <p class="small" data-t="mapNote">Map tiles, place search, voice recognition, directions and AI require internet or compatible browser permissions. Voice and live routing depend on your device and third-party services.</p>
  </div>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="./navigation-map.js"></script>
 <script>
 'use strict';
 const $=id=>document.getElementById(id);
@@ -242,6 +245,17 @@ function saveSettings(){try{const theme=$('themeSelect').value;const lang=$('lan
 function startVoice(){const Recognizer=window.SpeechRecognition||window.webkitSpeechRecognition;if(!Recognizer){toast(t('voiceUnsupported'));return}const speech=new Recognizer();speech.lang=state.lang==='en'?(navigator.language||'en-US'):({bn:'bn-BD',ar:'ar-AE',hi:'hi-IN',ur:'ur-PK',fr:'fr-FR',es:'es-ES'}[state.lang]||'en-US');speech.interimResults=false;speech.maxAlternatives=1;$('voiceBtn').style.color='var(--gold)';toast(t('voiceListening'));speech.onresult=e=>{const text=e.results?.[0]?.[0]?.transcript||'';$('searchInput').value=text;if(text)searchPlaces(text)};speech.onerror=()=>toast(t('voiceDenied'));speech.onend=()=>$('voiceBtn').style.color='';try{speech.start()}catch(e){toast(t('voiceUnsupported'))}}
 function initEvents(){document.querySelectorAll('.tab').forEach(el=>el.onclick=()=>setTab(el.dataset.view));$('sheethead').onclick=toggleSheet;$('searchBtn').onclick=()=>searchPlaces($('searchInput').value);$('searchInput').onkeydown=e=>{if(e.key==='Enter')searchPlaces(e.target.value)};$('voiceBtn').onclick=startVoice;document.querySelectorAll('[data-category]').forEach(el=>el.onclick=()=>searchCategory(el.dataset.category));$('locateBtn').onclick=()=>locate();$('layersBtn').onclick=()=>{applyTheme(state.theme==='day'?'royal':'day');try{safeLocal.setItem(STORE.theme,state.theme)}catch(e){};toast(state.theme==='day'?'Light map':'Dark map')};$('zoomInBtn').onclick=()=>state.map?.zoomIn();$('zoomOutBtn').onclick=()=>state.map?.zoomOut();$('startExplore').onclick=()=>$('searchInput').focus();$('startAI').onclick=()=>setTab('ai');document.querySelectorAll('[data-shortcut]').forEach(el=>el.onclick=()=>setTab(el.dataset.shortcut));document.querySelectorAll('[data-mode]').forEach(el=>el.onclick=()=>setMode(el.dataset.mode));$('routeBtn').onclick=()=>routeByQuery($('routeDestination').value);$('routeDestination').onkeydown=e=>{if(e.key==='Enter')routeByQuery(e.target.value)};$('sendBtn').onclick=()=>askAI($('chatInput').value);$('chatInput').onkeydown=e=>{if(e.key==='Enter')askAI(e.target.value)};document.querySelectorAll('.suggestion').forEach(el=>el.onclick=()=>askAI(el.dataset.query));$('settingsBtn').onclick=openSettings;$('closeSettings').onclick=closeSettings;$('saveSettings').onclick=saveSettings;$('settingsOverlay').onclick=e=>{if(e.target===$('settingsOverlay'))closeSettings()};document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSettings()});window.addEventListener('online',setOnline);window.addEventListener('offline',setOnline)}
 function start(){applyLanguage();applyTheme(safeLocal.getItem(STORE.theme)||'royal');setOnline();initMap();initEvents();renderSaved();addChat(state.lang==='bn'?'স্বাগতম! জায়গা, রাস্তা বা কাছাকাছি কী আছে জানতে পারেন।':'Welcome! Ask me about a place, route or destination.','ai')}
+const vipNav=window.installVipNavigation?.({state,$,t,toast,renderExplore,setTab,renderRouteResult,fmtDist,fmtTime,geocode,setMode});
+if(vipNav){
+  initMap=vipNav.initMap;
+  updateTiles=vipNav.updateTiles;
+  updateCredit=vipNav.updateCredit;
+  selectPlace=vipNav.selectPlace;
+  showResults=vipNav.showResults;
+  clearResultPins=vipNav.clearResultPins;
+  locate=vipNav.locate;
+  calculateRoute=vipNav.calculateRoute;
+}
 start();
 </script>
 <script>

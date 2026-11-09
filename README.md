@@ -88,3 +88,8 @@ content; an installed APK requires a new build and reinstall.
 **Testing status:** Uploading native wrapper code does not mean the APK
 was built or that GPS, microphone, voice, AI, maps and routing were
 verified on an Android phone. Check workflow logs and test on your device.
+
+
+## VIP navigation map update
+
+The map now uses **OpenFreeMap dark vector tiles** rendered with **MapLibre GL JS**. No CARTO key or Google Maps key is required. The controls support zoom, tilt between 2D/3D, rotate the map with gestures, reset bearing to north, tap to select, search, saved places, GPS (with permission), and route overlays. 3D buildings appear where map data supplies building geometry. Live map features need internet and third-party services. This is **not a Waze clone**: no crowd-sourced traffic, closures, speed traps, police markers or real-time incident reporting.
