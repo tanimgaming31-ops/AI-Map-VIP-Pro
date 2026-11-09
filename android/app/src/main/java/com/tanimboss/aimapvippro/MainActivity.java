@@ -13,6 +13,10 @@ import androidx.webkit.WebViewFeature;
 import org.json.JSONObject;
 import java.util.Collections;
 import java.util.Locale;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
@@ -163,7 +167,55 @@ public class MainActivity extends Activity {
             Uri uri = intent.getData();
             if ("geo".equals(uri.getScheme())) value = uri.toString();
         }
-        if (value != null && value.length() > 0) pendingSharedLocation = value.substring(0, Math.min(3000, value.length()));
+        if (value != null && value.length() > 0) {
+            final String shared = value.substring(0, Math.min(3000, value.length()));
+            Matcher match = Pattern.compile("https://(?:maps\\.app\\.goo\\.gl/|goo\\.gl/maps/)[^\\s]+", Pattern.CASE_INSENSITIVE).matcher(shared);
+            if (match.find()) resolveShortMapLink(match.group(), shared);
+            else pendingSharedLocation = shared;
+        }
+    }
+    private static boolean trustedMapsRedirect(URL url) {
+        if (!"https".equalsIgnoreCase(url.getProtocol())) return false;
+        String host = url.getHost().toLowerCase(Locale.US);
+        return host.equals("maps.app.goo.gl") || host.equals("goo.gl") ||
+            host.equals("google.com") || host.equals("www.google.com") ||
+            host.equals("maps.google.com");
+    }
+    private void resolveShortMapLink(String shortLink, String originalText) {
+        new Thread(() -> {
+            String result = originalText;
+            try {
+                URL cursor = new URL(shortLink);
+                for (int i = 0; i < 7 && trustedMapsRedirect(cursor); i++) {
+                    HttpURLConnection connection = (HttpURLConnection) cursor.openConnection();
+                    connection.setInstanceFollowRedirects(false);
+                    connection.setRequestMethod("GET");
+                    connection.setConnectTimeout(6500);
+                    connection.setReadTimeout(6500);
+                    connection.setRequestProperty("User-Agent", "AI-Map-VIP-Pro/1.2 (Android)");
+                    int code = connection.getResponseCode();
+                    String location = connection.getHeaderField("Location");
+                    connection.disconnect();
+                    if (code >= 300 && code < 400 && location != null && !location.isEmpty()) {
+                        URL redirected = new URL(cursor, location);
+                        if (!trustedMapsRedirect(redirected)) break;
+                        cursor = redirected;
+                        if (cursor.toString().contains("/maps/") || cursor.toString().contains("?q=")) {
+                            result = cursor.toString();
+                        }
+                    } else {
+                        if (cursor.toString().contains("/maps/") || cursor.toString().contains("?q="))
+                            result = cursor.toString();
+                        break;
+                    }
+                }
+            } catch (Exception ignored) {}
+            final String resolved = result;
+            runOnUiThread(() -> {
+                pendingSharedLocation = resolved;
+                deliverSharedLocation();
+            });
+        }, "vip-maps-link-resolver").start();
     }
     private void deliverSharedLocation() {
         if (webView == null || !appPageLoaded || pendingSharedLocation == null) return;
