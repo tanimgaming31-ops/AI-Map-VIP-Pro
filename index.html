@@ -215,6 +215,8 @@ svg{width:20px;height:20px;stroke:currentColor;stroke-width:1.85;stroke-linecap:
    <button type="button" id="vipSaveTrafficKey" class="actionbtn gold fill" style="margin-top:8px">SAVE TRAFFIC KEY</button>
    <div class="settingrow"><input id="vipTrafficToggle" type="checkbox" checked><label for="vipTrafficToggle">Show licensed live traffic and incidents</label></div>
    <div class="settingrow"><input id="vipRoadSafetyToggle" type="checkbox" checked><label for="vipRoadSafetyToggle">Show mapped signals and fixed cameras (OSM)</label></div>
+   <div class="settingrow"><input id="vipFlowRasterToggle" type="checkbox"><label for="vipFlowRasterToggle">Show congestion colors across map (uses paid/free tile quota)</label></div>
+   <div class="settingrow"><input id="vipRouteTrafficToggle" type="checkbox"><label for="vipRouteTrafficToggle">Prefer traffic-aware driving routes (needs Routing API access)</label></div>
    <div id="trafficDataStatus" aria-live="polite">Live traffic not configured.</div>
    <p class="small"><a href="https://developer.tomtom.com/" target="_blank" rel="noopener">Get a TomTom API key</a>. The key is saved only in this app/browser's local storage. Web scripts on this origin can access it, so do not use this method for shared public deployments.</p>
   </section>
@@ -225,6 +227,7 @@ svg{width:20px;height:20px;stroke:currentColor;stroke-width:1.85;stroke-linecap:
 </div>
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="./navigation-map.js"></script>
+<script src="./tomtom-routing.js"></script>
 <script src="./live-navigation.js"></script>
 <script src="./traffic-intelligence.js"></script>
 <script>
