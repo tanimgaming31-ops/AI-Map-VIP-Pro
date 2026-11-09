@@ -21,7 +21,7 @@ dependencies {
 }
 tasks.register('syncWebAssets', Copy) {
     from(rootProject.projectDir.parentFile) {
-        include 'index.html', 'navigation-map.js', 'manifest.webmanifest', 'sw.js', 'icons/**'
+        include 'index.html', 'navigation-map.js', 'live-navigation.js', 'live-navigation.css', 'manifest.webmanifest', 'sw.js', 'icons/**'
     }
     into(layout.projectDirectory.dir('src/main/assets/web'))
 }
