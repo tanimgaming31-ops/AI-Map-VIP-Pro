@@ -6,6 +6,9 @@ on:
     branches: [main]
     paths:
       - 'index.html'
+      - 'navigation-map.js'
+      - 'live-navigation.js'
+      - 'live-navigation.css'
       - 'manifest.webmanifest'
       - 'sw.js'
       - 'icons/**'
