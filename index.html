@@ -17,6 +17,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<link rel="stylesheet" href="./live-navigation.css">
 <style>
 :root{
  --bg:#080d18;--panel:rgba(10,15,29,.91);--panel2:rgba(21,27,45,.92);--card:rgba(255,255,255,.055);
@@ -116,6 +117,42 @@ svg{width:20px;height:20px;stroke:currentColor;stroke-width:1.85;stroke-linecap:
  <button class="tool label-tool" id="northBtn" aria-label="Reset compass to north" title="North up">N ↑</button>
 </div>
 <div id="mapcredit"><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap</a> · <a href="https://openfreemap.org/" target="_blank" rel="noopener">OpenFreeMap</a> · <a href="https://openmaptiles.org/" target="_blank" rel="noopener">OpenMapTiles</a></div>
+<section id="vip-route-top" aria-label="Destination for navigation" hidden>
+ <button class="vip-back" id="vip-route-back" aria-label="Close route preview">‹</button>
+ <div class="vip-top-text"><div class="vip-top-label">✦ AI MAP VIP PRO · DESTINATION</div>
+ <div class="vip-top-dest" id="vip-route-name">Choose destination</div></div>
+ <span class="vip-top-mode">NAV</span>
+</section>
+<section id="vip-nav-banner" aria-live="polite" hidden>
+ <span id="vip-maneuver-arrow">↑</span><div><div id="vip-maneuver-distance">—</div>
+ <div id="vip-maneuver-street">Follow the route</div></div>
+</section>
+<div id="vip-gps-note" role="status" aria-live="polite"></div>
+<section id="vip-route-ui" aria-label="Route directions" hidden>
+ <div class="vip-handle"></div>
+ <h3>🛣️ &nbsp;Select your route</h3>
+ <div id="vip-route-choices">
+  <div id="vip-route-options" role="group" aria-label="Route alternatives"></div>
+  <p id="vip-route-summary" role="status"></p>
+  <div class="vip-preview-metrics">
+   <div><small>ARRIVAL</small><br><b id="vip-preview-eta">—</b></div>
+   <div style="text-align:right"><small>DISTANCE</small><br><b id="vip-preview-distance">—</b></div>
+  </div>
+ </div>
+ <button id="vip-go-now" type="button">Go now &nbsp; ➜</button>
+ <div id="vip-active-controls" hidden>
+  <div class="vip-active-stat">
+   <div><b id="vip-bottom-time">—</b><small>TIME LEFT</small></div>
+   <div><b id="vip-bottom-distance">—</b><small>DISTANCE LEFT</small></div>
+   <div><b id="vip-bottom-arrival">—</b><small>ETA · ESTIMATE</small></div>
+  </div>
+  <div class="vip-active-actions">
+   <button id="vip-recenter" aria-label="Recenter map">◎ Follow</button>
+   <button id="vip-voice-toggle" aria-label="Mute directions">🔊 Voice</button>
+   <button id="vip-stop-nav" aria-label="Stop navigation">■ Stop</button>
+  </div>
+ </div>
+</section>
 <div id="sheet" class="glass">
  <button id="sheethead" aria-label="Expand or collapse navigation panel"><div><div class="handle"></div><div class="sheetmeta">✦ &nbsp;YOUR PERSONAL NAVIGATOR</div><div class="sheettitle" id="sheetTitle">Discover the extraordinary.</div></div><div class="sheetright"><span id="panelHint">EXPAND</span><svg><use href="#i-chevron"/></svg></div></button>
  <div id="sheetcontent">
@@ -170,6 +207,7 @@ svg{width:20px;height:20px;stroke:currentColor;stroke-width:1.85;stroke-linecap:
 </div>
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="./navigation-map.js"></script>
+<script src="./live-navigation.js"></script>
 <script>
 'use strict';
 const $=id=>document.getElementById(id);
@@ -218,7 +256,7 @@ function isSaved(place){return state.saved.some(p=>savedKey(p)===savedKey(place)
 function savePlace(place){if(!place)return;const id=savedKey(place);if(isSaved(place)){state.saved=state.saved.filter(p=>savedKey(p)!==id);toast(t('removedDone'))}else{state.saved.unshift({lat:+place.lat,lon:+place.lon,name:String(place.name),address:String(place.address||'')});state.saved=state.saved.slice(0,70);toast(t('savedDone'))}try{safeLocal.setItem(STORE.saved,JSON.stringify(state.saved))}catch(e){toast('Device storage unavailable')}renderExplore();renderSaved()}
 function placeHTML(p,i){return `<button class="placecard" type="button" data-index="${i}"><span class="number">${String(i+1).padStart(2,'0')}</span><span class="placecopy"><strong>${esc(p.name)}</strong><small>${esc(p.address||'')}</small></span>${icon('arrow')}</button>`}
 function selectionHTML(p){return `<div class="selection"><div class="sl">✦ ${esc(t('choosePlace'))}</div><h3>${esc(p.name)}</h3><p>${esc(p.address||'')}</p><div class="row"><button class="actionbtn gold" id="selectedRoute">${icon('route')}${esc(t('directions'))}</button><button class="actionbtn" id="selectedSave">${icon('bookmark')}${esc(isSaved(p)?t('remove'):t('save'))}</button></div></div>`}
-function renderExplore(){if(!$('selectedArea'))return;$('selectedArea').innerHTML=state.selected?selectionHTML(state.selected):'';$('welcomeArea').style.display=(state.results.length||state.selected)?'none':'block';$('resultsHeading').style.display=state.results.length?'flex':'none';$('resultCount').textContent=state.results.length+' '+t('found');$('searchResults').innerHTML=state.results.map(placeHTML).join('');$('searchResults').querySelectorAll('[data-index]').forEach(btn=>btn.addEventListener('click',()=>selectPlace(state.results[Number(btn.dataset.index)])));$('selectedRoute')?.addEventListener('click',()=>{setTab('route');$('routeDestination').value=state.selected.name});$('selectedSave')?.addEventListener('click',()=>savePlace(state.selected))}
+function renderExplore(){if(!$('selectedArea'))return;$('selectedArea').innerHTML=state.selected?selectionHTML(state.selected):'';$('welcomeArea').style.display=(state.results.length||state.selected)?'none':'block';$('resultsHeading').style.display=state.results.length?'flex':'none';$('resultCount').textContent=state.results.length+' '+t('found');$('searchResults').innerHTML=state.results.map(placeHTML).join('');$('searchResults').querySelectorAll('[data-index]').forEach(btn=>btn.addEventListener('click',()=>selectPlace(state.results[Number(btn.dataset.index)])));$('selectedRoute')?.addEventListener('click',()=>{if(state.selected){$('routeDestination').value=state.selected.name;calculateRoute(state.selected,state.mode)}});$('selectedSave')?.addEventListener('click',()=>savePlace(state.selected))}
 function renderSaved(){const container=$('savedList');if(!container)return;if(!state.saved.length){container.innerHTML=`<div class="empty">${icon('bookmark')}<strong>${esc(t('noSaved'))}</strong>${esc(t('savedHint'))}</div>`;return}container.innerHTML=state.saved.map((p,i)=>`<div class="placecard"><span class="number">${String(i+1).padStart(2,'0')}</span><div class="placecopy"><strong>${esc(p.name)}</strong><small>${esc(p.address)}</small><div style="display:flex;gap:8px;margin-top:8px"><button class="actionbtn" data-show="${i}">${icon('pin')}${esc(t('directions'))}</button><button class="actionbtn" data-delete="${i}">${icon('close')}${esc(t('remove'))}</button></div></div></div>`).join('');container.querySelectorAll('[data-show]').forEach(btn=>btn.onclick=()=>{const p=state.saved[Number(btn.dataset.show)];selectPlace(p);$('routeDestination').value=p.name;setTab('route')});container.querySelectorAll('[data-delete]').forEach(btn=>btn.onclick=()=>savePlace(state.saved[Number(btn.dataset.delete)]))}
 function markerIcon(){return L.divIcon({className:'vip-pin',html:'<span><i>✦</i></span>',iconSize:[36,36],iconAnchor:[15,31]})}
 function selectPlace(p,fromMap=false){if(!p)return;state.selected={name:String(p.name||t('pinHere')),address:String(p.address||''),lat:+p.lat,lon:+p.lon};if(state.selectedMarker)state.selectedMarker.remove();if(state.map){state.selectedMarker=L.marker([state.selected.lat,state.selected.lon],{icon:markerIcon(),zIndexOffset:200}).addTo(state.map);state.selectedMarker.bindPopup(esc(state.selected.name));state.map.flyTo([p.lat,p.lon],Math.max(state.map.getZoom(),15),{duration:.6})}if(fromMap){state.results=[];state.pins?.clearLayers()}renderExplore();setTab('explore')}
@@ -257,6 +295,8 @@ if(vipNav){
   calculateRoute=vipNav.calculateRoute;
 }
 start();
+const activeNav=window.installVipLiveNavigation?.({state,$,t,toast,setTab,setMode,locate,renderRouteResult});
+if(activeNav)calculateRoute=activeNav.planRoute;
 </script>
 <script>
 if ('serviceWorker' in navigator && location.protocol === 'https:' &&
