@@ -71,10 +71,12 @@ function readSharedPlace(input){
     const p={lat:Number(lat),lon:Number(lon)};
     return valid(p)?p:null;
   }
-  let match=raw.match(/(?:geo:|[?&](?:q|query|ll|destination)=|@)(-?\d{1,2}\.\d+|-?\d{1,2}),\s*(-?\d{1,3}\.\d+|-?\d{1,3})/i)
-    ||raw.match(/(?:geo:|[?&](?:q|query|ll|destination)=|@)(-?\d{1,2}),\s*(-?\d{1,3})/i);
+  // Google Maps URLs often include map viewport @lat,lon AND the actual pin !3d...!4d...
+  // Prefer the destination pin, not the viewport center.
+  let match=raw.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/);
   if(match){const point=coord(match[1],match[2]);if(point)return {kind:'coordinates',point};}
-  match=raw.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/);
+  match=raw.match(/(?:geo:|[?&](?:q|query|ll|destination)=|@)(-?\d{1,2}\.\d+|-?\d{1,2}),\s*(-?\d{1,3}\.\d+|-?\d{1,3})/i)
+    ||raw.match(/(?:geo:|[?&](?:q|query|ll|destination)=|@)(-?\d{1,2}),\s*(-?\d{1,3})/i);
   if(match){const point=coord(match[1],match[2]);if(point)return {kind:'coordinates',point};}
   if(/^[-+]?\d+(?:\.\d+)?\s*,\s*[-+]?\d+(?:\.\d+)?$/.test(raw)){
     const [lat,lon]=raw.split(','); const point=coord(lat,lon);
