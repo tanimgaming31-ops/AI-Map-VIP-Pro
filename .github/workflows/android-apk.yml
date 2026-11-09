@@ -18,6 +18,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: vip-android-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   apk:
     runs-on: ubuntu-latest
@@ -61,6 +65,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
+          LATEST_SHA="$(gh api "repos/$GITHUB_REPOSITORY/commits/main" --jq .sha)"
+          if [ "$GITHUB_SHA" != "$LATEST_SHA" ]; then
+            echo "A newer commit is on main. Skipping stale release publication."
+            exit 0
+          fi
           TAG="vip-debug-latest"
           if ! gh release view "$TAG" > /dev/null 2>&1; then
             gh release create "$TAG" --target "$GITHUB_SHA" --title "AI MAP VIP PRO | Android debug APK" --notes "Android debug APK for sideload testing. Source: GitHub Actions. This is not a signed production release. If an earlier debug APK was built with another signing key, uninstall it before installing this build (local app data will be lost)." --prerelease --latest=false
