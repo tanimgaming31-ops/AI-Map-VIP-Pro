@@ -162,7 +162,7 @@ window.installVipLiveNavigation=function({state,$,t,toast,setTab,setMode,locate,
     }
   }
   function drawRoutes(){
-    if(!state.map?.getStyle()?.sources||!routes.length)return;
+    if(!state.map || !state.map.isStyleLoaded() || !routes.length)return;
     removeRouteLayers();
     const indices=routes.map((route,i)=>i).filter(i=>i!==selected).concat(selected);
     indices.forEach(i=>{
@@ -221,6 +221,7 @@ window.installVipLiveNavigation=function({state,$,t,toast,setTab,setMode,locate,
   async function loadRoutes(from,to,mode){
     let error;
     for(const alt of [true,false]){
+      if(!alt)await new Promise(resolve=>setTimeout(resolve,1200));
       try{
         const controller=new AbortController();
         const timer=setTimeout(()=>controller.abort(),18000);
@@ -328,14 +329,10 @@ window.installVipLiveNavigation=function({state,$,t,toast,setTab,setMode,locate,
     if(maneuver.idx>=0){
       if(stepIndex!==maneuver.idx){stepIndex=maneuver.idx;spoken.clear();}
       const meter=maneuver.distance;
-      const stages=[350,90,30];
-      for(let i=0;i<stages.length;i++){
-        if(meter<=stages[i]&&meter>=0&&!spoken.has(i)){
-          // Only the most relevant voice cue when GPS jumps near a maneuver.
-          if(i===0||stages[i-1]>=meter){
-            speak(utterance(maneuver.step,meter,lang()));spoken.add(i);
-          }
-        }
+      const stage=meter<=30?2:meter<=90?1:meter<=350?0:-1;
+      if(stage>=0&&!spoken.has(stage)){
+        speak(utterance(maneuver.step,meter,lang()));
+        spoken.add(stage);
       }
     }
     if(cameraFollowing&&state.map){
