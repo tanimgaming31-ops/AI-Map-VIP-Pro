@@ -195,7 +195,8 @@ window.installVipLiveNavigation=function({state,$,t,toast,setTab,setMode,locate,
   function previewCards(){
     list.innerHTML=routes.map((r,i)=>{
       const diff=(r.duration-routes[0].duration)/60;
-      const label=i===0?tr('Recommended','প্রস্তাবিত'):tr('Alternative','বিকল্প')+' '+i;
+      const label=(i===0?tr('Recommended','প্রস্তাবিত'):tr('Alternative','বিকল্প')+' '+i)+
+        (r.source==='TomTom Traffic'?' · LIVE TRAFFIC':'');
       return '<button type="button" class="vip-route-choice '+(selected===i?'selected':'')+'" data-option="'+i+'">'
         +'<span class="vip-choice-dot"></span><span class="vip-choice-text"><strong>'
         +safeText(formatDuration(r.duration))+'</strong><small>'+safeText(label)
@@ -210,8 +211,9 @@ window.installVipLiveNavigation=function({state,$,t,toast,setTab,setMode,locate,
       routeBounds(routes[selected]);
     });
     const route=routes[selected];
-    summary.textContent=tr('Estimated time • No real-time traffic data',
-      'আনুমানিক সময় • লাইভ ট্রাফিক তথ্য নেই');
+    summary.textContent=route.source==='TomTom Traffic'?
+      tr('TomTom traffic-aware ETA · Last route calculation','TomTom ট্রাফিক ETA · শেষ রুট হিসাব'):
+      tr('Estimated time • No real-time traffic data','আনুমানিক সময় • লাইভ ট্রাফিক তথ্য নেই');
     $('vip-preview-eta').textContent=nowClock(route.duration);
     $('vip-preview-distance').textContent=formatDist(route.distance);
   }
@@ -222,6 +224,15 @@ window.installVipLiveNavigation=function({state,$,t,toast,setTab,setMode,locate,
       +'?overview=full&geometries=geojson&steps=true&alternatives='+(alternatives?'true':'false');
   }
   async function loadRoutes(from,to,mode){
+    if(mode==='car' && window.vipTomTomRouting?.enabled()){
+      try{
+        const liveRoutes=await window.vipTomTomRouting.route(from,to);
+        if(liveRoutes?.length)return liveRoutes;
+      }catch(e){
+        console.warn('Traffic-aware route unavailable; using standard OSRM directions:',e.message);
+        toast(tr('Live route not available. Using standard directions.','লাইভ ট্রাফিক রুট নেই। সাধারণ রাস্তা দেখানো হচ্ছে।'));
+      }
+    }
     let error;
     for(const alt of [true,false]){
       if(!alt)await new Promise(resolve=>setTimeout(resolve,1200));
@@ -342,7 +353,10 @@ window.installVipLiveNavigation=function({state,$,t,toast,setTab,setMode,locate,
     bottomDistance.textContent=formatDist(remaining);
     bottomTime.textContent=formatDuration(secs);
     bottomArrival.textContent=nowClock(secs);
-    gpsInfo.textContent=position.accuracy>100?tr('Weak GPS accuracy','GPS নির্ভুল নয়'):tr('GPS active · Traffic not included','GPS চালু · ট্রাফিক নেই');
+    gpsInfo.textContent=position.accuracy>100?tr('Weak GPS accuracy','GPS নির্ভুল নয়'):
+      route.source==='TomTom Traffic'?
+      tr('GPS active · Traffic at last route calculation','GPS চালু · শেষ রুটে ট্রাফিক ছিল'):
+      tr('GPS active · Traffic not included','GPS চালু · ট্রাফিক নেই');
     const maneuver=activeStep(progress);
     setBanner(maneuver.step,maneuver.distance);
     if(maneuver.idx>=0){
