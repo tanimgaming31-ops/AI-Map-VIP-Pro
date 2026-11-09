@@ -202,6 +202,7 @@ window.installVipLiveNavigation=function({state,$,t,toast,setTab,setMode,locate,
     }).join('');
     list.querySelectorAll('[data-option]').forEach(button=>button.onclick=()=>{
       selected=Number(button.dataset.option);
+      renderRouteResult({route:routes[selected],name:destination.name,origin:state.me?t('youAreHere'):t('centerStart')});
       previewCards();
       drawRoutes();
       routeBounds(routes[selected]);
@@ -258,7 +259,8 @@ window.installVipLiveNavigation=function({state,$,t,toast,setTab,setMode,locate,
       const found=await loadRoutes(from,place,state.mode);
       if(seq!==routeLoad)return;
       routes=found;selected=0;destination={lat:+place.lat,lon:+place.lon,name:String(place.name||'Destination')};startPoint=from;
-      state.lastRoute={route:found[0],name:destination.name,origin:state.me?t('youAreHere'):t('centerStart')};
+      const routeInfo={route:found[0],name:destination.name,origin:state.me?t('youAreHere'):t('centerStart')};
+      state.lastRoute=null; // Prevent the older static-route renderer from drawing duplicate lines.
       attachMap();
       if(!options.rerouting){
         active=false;
@@ -268,7 +270,7 @@ window.installVipLiveNavigation=function({state,$,t,toast,setTab,setMode,locate,
         routeBounds(routes[selected]);
         previewCards();
         setTab('route'); // Keep legacy route result ready while custom preview is visible.
-        renderRouteResult(state.lastRoute);
+        renderRouteResult(routeInfo);
         try{localStorage.setItem(storageKey,JSON.stringify(destination));}catch(e){}
       }else{
         routeBounds(routes[selected]);
