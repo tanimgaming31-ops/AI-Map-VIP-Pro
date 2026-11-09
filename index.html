@@ -18,6 +18,7 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
 <link rel="stylesheet" href="./live-navigation.css">
+<link rel="stylesheet" href="./traffic-intelligence.css">
 <style>
 :root{
  --bg:#080d18;--panel:rgba(10,15,29,.91);--panel2:rgba(21,27,45,.92);--card:rgba(255,255,255,.055);
@@ -125,7 +126,7 @@ svg{width:20px;height:20px;stroke:currentColor;stroke-width:1.85;stroke-linecap:
 </section>
 <section id="vip-nav-banner" aria-live="polite" hidden>
  <span id="vip-maneuver-arrow">↑</span><div><div id="vip-maneuver-distance">—</div>
- <div id="vip-maneuver-street">Follow the route</div></div>
+ <div id="vip-maneuver-street">Follow the route</div><div id="vip-lanes" aria-label="Mapped lane guidance" hidden></div></div>
 </section>
 <div id="vip-gps-note" role="status" aria-live="polite"></div>
 <section id="vip-route-ui" aria-label="Route directions" hidden>
@@ -152,6 +153,12 @@ svg{width:20px;height:20px;stroke:currentColor;stroke-width:1.85;stroke-linecap:
    <button id="vip-stop-nav" aria-label="Stop navigation">■ Stop</button>
   </div>
  </div>
+</section>
+<button id="vipRoadDataBtn" type="button" title="Traffic and road information">🚦 TRAFFIC</button>
+<section id="vipRoadDataPanel" aria-label="Traffic and road information" hidden>
+ <header><strong>🚦 TRAFFIC & ROAD DATA</strong><button class="iconbtn" id="vipRefreshTraffic" aria-label="Refresh traffic" title="Refresh sources">↻</button></header>
+ <span id="vipRoadDataSummary">Loading road-data status…</span><div id="vipIncidentList"></div>
+ <small style="display:block;color:#9da9c0;font-size:10px;margin-top:10px">TomTom: licensed live traffic when configured. OSM: mapped camera/signal locations, not live state. Always obey actual road signs.</small>
 </section>
 <div id="sheet" class="glass">
  <button id="sheethead" aria-label="Expand or collapse navigation panel"><div><div class="handle"></div><div class="sheetmeta">✦ &nbsp;YOUR PERSONAL NAVIGATOR</div><div class="sheettitle" id="sheetTitle">Discover the extraordinary.</div></div><div class="sheetright"><span id="panelHint">EXPAND</span><svg><use href="#i-chevron"/></svg></div></button>
@@ -200,6 +207,17 @@ svg{width:20px;height:20px;stroke:currentColor;stroke-width:1.85;stroke-linecap:
   <label class="fieldlabel" for="apiKey" data-t="apiKey">ANTHROPIC API KEY (OPTIONAL)</label><input class="field" id="apiKey" type="password" autocomplete="off" placeholder="sk-ant-..." spellcheck="false"/>
   <label class="fieldlabel" for="aiModel" data-t="aiModel">AI MODEL</label><input class="field" id="aiModel" value="claude-sonnet-4-6" spellcheck="false"/></div>
   <div class="settingrow"><input type="checkbox" id="rememberKey"><label for="rememberKey" data-t="rememberKey">Remember API key on this device</label></div>
+  <section id="vip-traffic-settings" aria-label="Optional traffic data provider">
+   <h3 style="font:800 15px 'Outfit';margin:0 0 8px">🚦 LIVE TRAFFIC • TomTom</h3>
+   <p class="small">Live congestion, roadworks and incident information require your TomTom Traffic API key. No key is included in this public source code.</p>
+   <label class="fieldlabel" for="tomtomKey">TOMTOM TRAFFIC API KEY (OPTIONAL)</label>
+   <input type="password" class="field" id="tomtomKey" autocomplete="off" placeholder="Enter your own API key" />
+   <button type="button" id="vipSaveTrafficKey" class="actionbtn gold fill" style="margin-top:8px">SAVE TRAFFIC KEY</button>
+   <div class="settingrow"><input id="vipTrafficToggle" type="checkbox" checked><label for="vipTrafficToggle">Show licensed live traffic and incidents</label></div>
+   <div class="settingrow"><input id="vipRoadSafetyToggle" type="checkbox" checked><label for="vipRoadSafetyToggle">Show mapped signals and fixed cameras (OSM)</label></div>
+   <div id="trafficDataStatus" aria-live="polite">Live traffic not configured.</div>
+   <p class="small"><a href="https://developer.tomtom.com/" target="_blank" rel="noopener">Get a TomTom API key</a>. The key is saved only in this app/browser's local storage. Web scripts on this origin can access it, so do not use this method for shared public deployments.</p>
+  </section>
   <div class="note" data-t="keyWarning">Security: A browser-only API key is exposed to scripts running on the page. Use a private trusted copy; never publish your key with shared HTML or on a public website. A secure backend is recommended for deployment. The key is optional.</div>
   <button class="actionbtn gold fill" id="saveSettings"><svg><use href="#i-check"/></svg><span data-t="saveSettings">SAVE SETTINGS</span></button>
   <p class="small" data-t="mapNote">Map tiles, place search, voice recognition, directions and AI require internet or compatible browser permissions. Voice and live routing depend on your device and third-party services.</p>
@@ -208,6 +226,7 @@ svg{width:20px;height:20px;stroke:currentColor;stroke-width:1.85;stroke-linecap:
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="./navigation-map.js"></script>
 <script src="./live-navigation.js"></script>
+<script src="./traffic-intelligence.js"></script>
 <script>
 'use strict';
 const $=id=>document.getElementById(id);
@@ -297,6 +316,8 @@ if(vipNav){
 start();
 const activeNav=window.installVipLiveNavigation?.({state,$,t,toast,setTab,setMode,locate,renderRouteResult});
 if(activeNav)calculateRoute=activeNav.planRoute;
+const vipTraffic=window.installVipTraffic?.({state,$,toast});
+window.vipTraffic=vipTraffic;
 </script>
 <script>
 if ('serviceWorker' in navigator && location.protocol === 'https:' &&
