@@ -110,7 +110,7 @@ window.installVipLiveNavigation=function({state,$,t,toast,setTab,setMode,locate,
   let routes=[],selected=0,destination=null,startPoint=null;
   let watchId=null,active=false,lastPos=null,lastReroute=0,badFixes=0;
   let spoken=new Set(),stepIndex=-1,cameraFollowing=true,startedAt=0,routeLoad=0;
-  let muted=localStorage.getItem('vip_nav_muted')==='1';
+  let muted=false;try{muted=localStorage.getItem('vip_nav_muted')==='1';}catch(e){}
   let mapListenersAttached=false,rerouting=false;
   const lang=()=>state.lang==='bn'?'bn':'en';
   const tr=(en,bn)=>lang()==='bn'?bn:en;
@@ -173,7 +173,7 @@ window.installVipLiveNavigation=function({state,$,t,toast,setTab,setMode,locate,
       state.map.addLayer({id:id+'-glow',type:'line',source:id,layout:{'line-join':'round','line-cap':'round'},
         paint:{'line-color':chosen?'#28d4ff':'#b8c5d5','line-opacity':chosen?.42:.14,'line-width':chosen?18:10,'line-blur':5}});
       state.map.addLayer({id:id+'-main',type:'line',source:id,layout:{'line-join':'round','line-cap':'round'},
-        paint:{'line-color':chosen?'#28cafa':'#9aa9bb','line-opacity':chosen: .5,'line-width':chosen?7:5}});
+        paint:{'line-color':chosen?'#28cafa':'#9aa9bb','line-opacity':chosen ? .98 : .5,'line-width':chosen?7:5}});
     });
   }
   function attachMap(){
@@ -239,7 +239,7 @@ window.installVipLiveNavigation=function({state,$,t,toast,setTab,setMode,locate,
   async function planRoute(place,mode=state.mode,options={}){
     if(!valid(place)){toast(tr('Choose a valid destination','সঠিক গন্তব্য নির্বাচন করুন'));return;}
     setMode(mode);
-    const origin=options.from|| (state.me?{lat:state.me[0],lon:state.me[1]}:null);
+    const origin=options.from||(state.me?{lat:state.me[0],lon:state.me[1]}:null);
     let from=origin;
     if(!from){
       const gps=await locate(true);
@@ -345,8 +345,8 @@ window.installVipLiveNavigation=function({state,$,t,toast,setTab,setMode,locate,
         duration:850,essential:true});
     }
     if(haversine(lastPos,destination)<Math.max(24,Math.min(55,lastPos.accuracy*1.2))&&lastPos.accuracy<70){
-      speak(tr('You have arrived at your destination.','আপনি গন্তব্যে পৌঁছে গেছেন।'));
       stopNavigation(false);
+      speak(tr('You have arrived at your destination.','আপনি গন্তব্যে পৌঁছে গেছেন।'));
       toast(tr('Destination reached!','গন্তব্যে পৌঁছে গেছেন!'));
       return;
     }
