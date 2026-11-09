@@ -16,6 +16,7 @@ assert.equal(readSharedPlace('geo:25.2048,55.2708').point.lat,25.2048);
 assert.equal(readSharedPlace('https://maps.google.com/maps?q=25.2048,55.2708').point.lon,55.2708);
 assert.equal(readSharedPlace('https://www.google.com/maps/@25.2048,55.2708,15z').point.lat,25.2048);
 assert.equal(readSharedPlace('https://maps.app.goo.gl/abcd').kind,'shortlink');
+assert.equal(readSharedPlace('https://www.google.com/maps/place/Pin/@25.20,55.20,12z/data=!3d25.50!4d55.80').point.lon,55.8);
 assert.equal(readSharedPlace('Dubai Mall').kind,'query');
 assert.equal(formatDist(1500),'1.5 km');
 assert.equal(formatDuration(1980),'33 min');
