@@ -13,19 +13,17 @@ jobs:
   validate-and-package:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - name: Validate HTML and JavaScript
         run: python3 scripts/check_html.py
-      - name: Create ZIP download
-        run: zip -r AI-Map-VIP-Pro.zip index.html README.md THIRD_PARTY_NOTICES.md .nojekyll .github/workflows/validate-and-package.yml scripts/check_html.py
-      - name: Upload downloadable artifact
-        uses: actions/upload-artifact@v4
+      - name: Create complete source ZIP
+        run: |
+          zip -r AI-Map-VIP-Pro-Source.zip index.html README.md THIRD_PARTY_NOTICES.md .nojekyll             manifest.webmanifest sw.js icons/ android/ scripts/ .github/workflows/ .gitignore
+      - uses: actions/upload-artifact@v4
         with:
-          name: AI-Map-VIP-Pro
-          path: AI-Map-VIP-Pro.zip
+          name: AI-Map-VIP-Pro-Source
+          path: AI-Map-VIP-Pro-Source.zip
           if-no-files-found: error

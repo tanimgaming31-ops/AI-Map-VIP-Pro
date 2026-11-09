@@ -4,6 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0a0d17">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="application-name" content="AI MAP VIP PRO">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="./icons/vip-compass.svg">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
 <meta name="description" content="AI Map VIP, a premium mobile-first location search, directions and AI map assistant.">
 <title>AI MAP • VIP Navigation</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -236,6 +243,14 @@ function startVoice(){const Recognizer=window.SpeechRecognition||window.webkitSp
 function initEvents(){document.querySelectorAll('.tab').forEach(el=>el.onclick=()=>setTab(el.dataset.view));$('sheethead').onclick=toggleSheet;$('searchBtn').onclick=()=>searchPlaces($('searchInput').value);$('searchInput').onkeydown=e=>{if(e.key==='Enter')searchPlaces(e.target.value)};$('voiceBtn').onclick=startVoice;document.querySelectorAll('[data-category]').forEach(el=>el.onclick=()=>searchCategory(el.dataset.category));$('locateBtn').onclick=()=>locate();$('layersBtn').onclick=()=>{applyTheme(state.theme==='day'?'royal':'day');try{safeLocal.setItem(STORE.theme,state.theme)}catch(e){};toast(state.theme==='day'?'Light map':'Dark map')};$('zoomInBtn').onclick=()=>state.map?.zoomIn();$('zoomOutBtn').onclick=()=>state.map?.zoomOut();$('startExplore').onclick=()=>$('searchInput').focus();$('startAI').onclick=()=>setTab('ai');document.querySelectorAll('[data-shortcut]').forEach(el=>el.onclick=()=>setTab(el.dataset.shortcut));document.querySelectorAll('[data-mode]').forEach(el=>el.onclick=()=>setMode(el.dataset.mode));$('routeBtn').onclick=()=>routeByQuery($('routeDestination').value);$('routeDestination').onkeydown=e=>{if(e.key==='Enter')routeByQuery(e.target.value)};$('sendBtn').onclick=()=>askAI($('chatInput').value);$('chatInput').onkeydown=e=>{if(e.key==='Enter')askAI(e.target.value)};document.querySelectorAll('.suggestion').forEach(el=>el.onclick=()=>askAI(el.dataset.query));$('settingsBtn').onclick=openSettings;$('closeSettings').onclick=closeSettings;$('saveSettings').onclick=saveSettings;$('settingsOverlay').onclick=e=>{if(e.target===$('settingsOverlay'))closeSettings()};document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSettings()});window.addEventListener('online',setOnline);window.addEventListener('offline',setOnline)}
 function start(){applyLanguage();applyTheme(safeLocal.getItem(STORE.theme)||'royal');setOnline();initMap();initEvents();renderSaved();addChat(state.lang==='bn'?'স্বাগতম! জায়গা, রাস্তা বা কাছাকাছি কী আছে জানতে পারেন।':'Welcome! Ask me about a place, route or destination.','ai')}
 start();
+</script>
+<script>
+if ('serviceWorker' in navigator && location.protocol === 'https:' &&
+    !location.hostname.endsWith('androidplatform.net')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(err => console.info('PWA offline shell unavailable:', err));
+  });
+}
 </script>
 </body>
 </html>

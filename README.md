@@ -51,3 +51,40 @@ Premium mobile-friendly map and navigation web application.
 ## Current checks
 
 The GitHub workflow checks HTML entry points and runs `node --check` against the extracted inline JavaScript. This is a **source syntax check**, not a guarantee that GPS/routing/AI providers work or that a phone test passed.
+---
+
+## Android installable APK (new)
+
+This is a full-screen Android app built from the **same premium HTML** as GitHub Pages.
+The web interface is **packaged inside the APK** via AndroidX WebViewAssetLoader;
+there is no remote-start-page dependency. Live OpenStreetMap tiles, places,
+routing, map CDN resources and optional AI calls **require internet**.
+
+- Android app ID: `com.tanimboss.aimapvippro`.
+- Min Android: 8.0 (API 26), target Android 15 (API 35).
+- Icon: dark Royal Navy, gold compass pin, pink VIP accents.
+- Web geolocation and microphone are granted **only after Android permission prompts**.
+- Web Speech Recognition may not be available in Android WebView. Test on device.
+- No API keys are stored in the GitHub repository.
+
+**Download:** GitHub > Actions > **Android APK — AI MAP VIP PRO** >
+latest successful run > Artifacts > **AI-Map-VIP-Pro-Android-APK**.
+GitHub Actions produces a **debug-signed APK**, for testing/sideloading, not a
+Google Play production release. Any update must be built and installed again.
+
+**Build manually:** Install Java 17, Android SDK platform 35 and Gradle 8.9.
+Then `gradle -p android :app:assembleDebug`.
+Gradle automatically copies the root web app to Android assets before each build.
+
+**PWA install:** Enable GitHub Pages for `main` root; open HTTPS URL in Android
+Chrome; use **Install app** / **Add to Home screen**. PWA caching saves the
+application shell only, not offline navigation or map results.
+
+**Source updates:** Edit root `index.html`, then commit to `main`.
+Both GitHub Actions workflows run on push (APK workflow on relevant paths).
+Use GitHub Actions artifacts for downloads. The PWA uses the current GitHub Pages
+content; an installed APK requires a new build and reinstall.
+
+**Testing status:** Uploading native wrapper code does not mean the APK
+was built or that GPS, microphone, voice, AI, maps and routing were
+verified on an Android phone. Check workflow logs and test on your device.

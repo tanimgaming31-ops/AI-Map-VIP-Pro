@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#080d18"/><stop offset="1" stop-color="#25132a"/></linearGradient>
+<linearGradient id="gold" x2=".8" y2="1"><stop stop-color="#fff1c4"/><stop offset=".55" stop-color="#f5cb85"/><stop offset="1" stop-color="#df8cbe"/></linearGradient>
+<filter id="glow"><feGaussianBlur stdDeviation="9"/></filter></defs>
+<rect width="512" height="512" rx="116" fill="url(#bg)"/>
+<circle cx="256" cy="255" r="171" fill="none" stroke="#f5cb85" stroke-opacity=".25" stroke-width="3"/>
+<circle cx="256" cy="255" r="153" fill="none" stroke="#f5cb85" stroke-opacity=".5" stroke-width="2" stroke-dasharray="5 14"/>
+<path d="M256 80c-96 0-170 77-170 171s170 186 170 186 170-94 170-186S352 80 256 80Z" fill="#e6a6bf" opacity=".24" filter="url(#glow)"/>
+<path d="M256 103c-83 0-144 63-144 143 0 92 144 178 144 178s144-86 144-178c0-80-61-143-144-143Z" fill="url(#gold)"/>
+<path d="M256 147c-55 0-98 43-98 98s43 98 98 98 98-43 98-98-43-98-98-98Z" fill="#151327"/>
+<path d="M256 174 283 220 332 238 283 260 256 308 229 260 180 238 229 220Z" fill="url(#gold)"/>
+<path d="m206 125 19-25 31 21 31-21 19 25-5 21h-90Z" fill="#eea5cc" stroke="#ffe8b4" stroke-width="5" stroke-linejoin="round"/>
+<circle cx="256" cy="238" r="9" fill="#fff2cd"/>
+<path d="M112 127h16M120 119v16M392 362h20M402 352v20" stroke="#f5cb85" stroke-width="6" stroke-linecap="round"/>
+</svg>
